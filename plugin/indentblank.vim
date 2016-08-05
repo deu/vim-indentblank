@@ -34,6 +34,7 @@ function! IndentBlank()
         call setline(line("."), l:lineToWrite)
         let g:indentedBlank = 1
         " Start insert mode at EOL:
+        let v:char = 1 " Don't restore cursor.
         startinsert!
     endif
 endfunction
