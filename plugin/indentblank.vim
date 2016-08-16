@@ -23,12 +23,9 @@ function! IndentBlank()
                 \ . repeat(" ",  l:prevNonBlankIndentation % &shiftwidth)
         if l:lineToWrite != ""
             " Reproduce the last non-blank line's indentation:
-            call setline(l:current, l:lineToWrite)
+            call feedkeys(l:lineToWrite)
             let g:indentedBlank = l:current
         endif
-        " Start insert mode at EOL:
-        let v:char = 1 " Don't restore cursor.
-        startinsert!
     endif
 endfunction
 function! DeIndentBlank()
@@ -36,9 +33,21 @@ function! DeIndentBlank()
     " but nothing has been written in it, undo:
     if (g:indentedBlank == line(".") && match(getline("."), "^[ \t]*$") >= 0)
         undo
+        " If the previously indented empty line is not empty after the undo,
+        " empty is manually:
+        if (getline(g:indentedBlank) != "")
+            call setline(g:indentedBlank, "")
+        endif
     endif
     let g:indentedBlank = -1
 endfunction
 " Execute them every time we enter/leave insert mode:
-autocmd InsertEnter * call IndentBlank()
-autocmd InsertLeave * call DeIndentBlank()
+if exists("#InsertBlank")
+    " If the autocommands already exist (e.g.: sourcing this multiple times
+    " for testing) delete them first:
+    autocmd! InsertBlank InsertEnter,InsertLeave *
+endif
+augroup InsertBlank
+    autocmd InsertEnter * call IndentBlank()
+    autocmd InsertLeave * call DeIndentBlank()
+augroup END
