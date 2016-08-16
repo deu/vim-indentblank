@@ -32,10 +32,14 @@ function! DeIndentBlank()
     " If the current line has been indented by IndentBlank()
     " but nothing has been written in it, undo:
     if (g:indentedBlank == line(".") && match(getline("."), "^[ \t]*$") >= 0)
+        let l:lines = line("$")
         undo
         " If the previously indented empty line is not empty after the undo,
-        " empty is manually:
-        if (getline(g:indentedBlank) != "")
+        " empty is manually.
+        " Also be sure that the number of lines before and after the undo is
+        " the same, or having started insert mode with "o" would cause
+        " the next line to be emptied instead.
+        if (getline(g:indentedBlank) != "" && l:lines == line("$"))
             call setline(g:indentedBlank, "")
         endif
     endif
